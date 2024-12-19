@@ -2,7 +2,6 @@ import { ProductModel, Product } from "../../models/product.model";
 import { docClient } from "../../configs/dynamodb";
 import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
-// Mock del cliente DynamoDB y constantes de configuración
 jest.mock("../../configs/dynamodb", () => ({
     docClient: {
         send: jest.fn(),
@@ -12,7 +11,7 @@ jest.mock("../../configs/dynamodb", () => ({
 
 describe("ProductModel", () => {
     afterEach(() => {
-        jest.clearAllMocks(); // Limpia los mocks después de cada prueba
+        jest.clearAllMocks();
     });
 
     it("should create a product", async () => {
@@ -24,12 +23,10 @@ describe("ProductModel", () => {
             price: 19.99,
         };
 
-        // Simula que `send` resuelve exitosamente
         (docClient.send as jest.Mock).mockResolvedValueOnce(undefined);
 
         await ProductModel.create(mockProduct);
 
-        // Verifica que `docClient.send` se llamó con un objeto que contiene las propiedades esperadas
         expect(docClient.send).toHaveBeenCalledWith(
             expect.objectContaining({
                 input: {
@@ -46,12 +43,10 @@ describe("ProductModel", () => {
             { productId: "2", name: "Product 2", color: "Green", quantity: 15, price: 20.99 },
         ];
 
-        // Simula que `send` devuelve productos simulados
         (docClient.send as jest.Mock).mockResolvedValueOnce({ Items: mockProducts });
 
         const result = await ProductModel.getAllProducts();
 
-        // Verifica que `docClient.send` se llamó con los parámetros esperados
         expect(docClient.send).toHaveBeenCalledWith(
             expect.objectContaining({
                 input: {
@@ -60,7 +55,6 @@ describe("ProductModel", () => {
             })
         );
 
-        // Verifica que el resultado sea igual a los productos simulados
         expect(result).toEqual(mockProducts);
     });
 });
