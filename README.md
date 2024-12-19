@@ -40,7 +40,7 @@ Este proyecto es una API serverless construida con **Node.js**, **TypeScript** y
 ## Instalación
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/tu-usuario/starwars-weather.git
+   git clone git@github.com:anthonycv/starwars-weather.git
    cd starwars-weather
    ```
 
