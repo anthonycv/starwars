@@ -1,0 +1,140 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: lagunamov
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: starwarsweather
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: starwarsweather
+
+stages:
+  default:
+    params:
+      productTable: "products-table-${sls:stage}"
+      cacheTable: "cache-table-${sls:stage}"
+      historyTable: "history-table-${sls:stage}"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  iam:
+    role:
+      statements:
+        # Permisos para la tabla de productos
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [ProductsTable, Arn]
+
+        # Permisos para la tabla de history
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [HistoryTable, Arn]
+
+        # Permisos para la tabla de caché
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [CacheTable, Arn]
+
+        # Permisos para trabajar con interfaces de red
+        - Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+          Resource: "*" # O especifica los recursos si deseas restringirlo
+
+  environment:
+    PRODUCTS_TABLE: ${param:productTable}
+    CACHE_TABLE: ${param:cacheTable}
+
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: [ ]
+    target: "node20"
+    define: { "require.resolve": undefined }
+    platform: "node"
+    concurrency: 10
+
+functions:
+  store:
+    handler: src/handlers/store.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /store
+
+  dataService:
+    handler: src/handlers/dataService.handler
+    events:
+      - httpApi:
+          method: GET
+          path: /data/{proxy+}
+      - httpApi:
+          method: GET
+          path: /data/planets/{id}
+      - httpApi:
+          method: GET
+          path: /data/planets-history
+
+resources:
+  Resources:
+    # Tabla de productos
+    ProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: productId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: productId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${param:productTable}
+
+    # Tabla de caché
+    CacheTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${param:cacheTable}
+        AttributeDefinitions:
+          - AttributeName: cacheKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: cacheKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl # Campo TTL para expiración automática
+          Enabled: true
+
+    # Tabla de historial
+    HistoryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: historyId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: historyId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${param:historyTable}
