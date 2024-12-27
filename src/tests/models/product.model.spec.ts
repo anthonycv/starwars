@@ -1,6 +1,5 @@
 import { ProductModel, Product } from "../../models/product.model";
 import { docClient } from "../../configs/dynamodb";
-import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
 jest.mock("../../configs/dynamodb", () => ({
     docClient: {

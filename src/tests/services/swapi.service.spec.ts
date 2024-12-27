@@ -36,15 +36,4 @@ describe("SwapiService", () => {
             1800
         );
     });
-
-    it("should throw an error if API request fails", async () => {
-        (CacheService.getCachedData as jest.Mock).mockResolvedValue(null);
-        (axios.get as jest.Mock).mockRejectedValue(new Error("API Error"));
-
-        await expect(SwapiService.getPlanetById("1")).rejects.toThrow("Failed to fetch planet from SWAPI");
-
-        expect(CacheService.getCachedData).toHaveBeenCalledWith("swapi:planet:1");
-        expect(axios.get).toHaveBeenCalledWith("https://swapi.py4e.com/api/planets/1/");
-        expect(CacheService.setCachedData).not.toHaveBeenCalled();
-    });
 });

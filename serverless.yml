@@ -10,7 +10,6 @@ stages:
     params:
       productTable: "products-table-${sls:stage}"
       cacheTable: "cache-table-${sls:stage}"
-      historyTable: "history-table-${sls:stage}"
 
 provider:
   name: aws
@@ -29,18 +28,6 @@ provider:
             - dynamodb:DeleteItem
           Resource:
             - Fn::GetAtt: [ProductsTable, Arn]
-
-        # Permisos para la tabla de history
-        - Effect: Allow
-          Action:
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource:
-            - Fn::GetAtt: [HistoryTable, Arn]
 
         # Permisos para la tabla de caché
         - Effect: Allow
@@ -93,7 +80,7 @@ functions:
           path: /data/planets/{id}
       - httpApi:
           method: GET
-          path: /data/planets-history
+          path: /data/planets
 
 resources:
   Resources:
@@ -125,16 +112,3 @@ resources:
         TimeToLiveSpecification:
           AttributeName: ttl # Campo TTL para expiración automática
           Enabled: true
-
-    # Tabla de historial
-    HistoryTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: historyId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: historyId
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        TableName: ${param:historyTable}

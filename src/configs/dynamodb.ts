@@ -6,4 +6,3 @@ export const docClient = DynamoDBDocumentClient.from(client);
 
 export const PRODUCTS_TABLE = process.env.PRODUCTS_TABLE || "products-table-dev";
 export const CACHE_TABLE = process.env.CACHE_TABLE || "cache-table-dev";
-export const HISTORY_TABLE = process.env.HISTORY_TABLE || "history-table-dev";

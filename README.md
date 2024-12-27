@@ -1,7 +1,13 @@
 
-# Star Wars Weather Service
+# Star Wars Service
 
-Este proyecto es una API serverless construida con **Node.js**, **TypeScript** y **AWS** que combina datos de la API de Star Wars (SWAPI) con datos meteorológicos obtenidos de la API de Open-Meteo. Además, utiliza **DynamoDB** como base de datos principal y para almacenar respuestas en caché de las APIs externas durante 30 minutos, optimizando el rendimiento y reduciendo costos.
+- Este proyecto es una API serverless construida con **Node.js**, **TypeScript**, **Express**, **Serverless Framework** y **AWS**
+- Integra la **API de Star Wars (SWAPI)**.
+- Se uso **DynamoDB** para almacenar en cache por 30 minutos las respuestas de **API de Star Wars (SWAPI)**,  optimizando el rendimiento y reduciendo costos.
+- Crea y obtiene productos, utilizando **DynamoDB** como base de datos y **Joi** para validar el request POST.
+- Los keys devueltos por **API de Star Wars (SWAPI)** son todos traducidos al español
+- Se uso **Jest** para las pruebas unitarias de un modelo,controlador y servicio
+- Ha sido desplegado en AWS sin errores
 
 ---
 
@@ -34,14 +40,15 @@ Este proyecto es una API serverless construida con **Node.js**, **TypeScript** y
 - **Serverless Framework**: Para la administración y despliegue de la infraestructura.
 - **Jest**: Framework de pruebas unitarias.
 - **Axios**: Cliente HTTP para consumir las APIs externas (SWAPI y Open-Meteo).
+- **Joi**: Para validar los request.
 
 ---
 
 ## Instalación
 1. Clona el repositorio:
    ```bash
-   git clone git@github.com:anthonycv/starwars-weather.git
-   cd starwars-weather
+   git clone git@github.com:anthonycv/starwars.git
+   cd starwars
    ```
 
 2. Instala las dependencias:
@@ -55,14 +62,12 @@ Este proyecto es una API serverless construida con **Node.js**, **TypeScript** y
 1. Crea un archivo `.env` en el directorio raíz con las siguientes variables:
    ```env
    PRODUCTS_TABLE=products-table-dev
-   HISTORY_TABLE=history-table-dev
    AWS_REGION=us-east-1
    AWS_ACCESS_KEY_ID=tu-access-key-id
    AWS_SECRET_ACCESS_KEY=tu-secret-access-key
    ```
 
 2. Asegúrate de que tu cuenta de AWS tenga configuradas las siguientes:
-   - **VPC:** Con subnets privadas y un NAT Gateway para acceso externo.
    - **IAM Roles:** Con permisos para DynamoDB y Lambda.
 
 ---
@@ -74,34 +79,46 @@ src/
 │   ├── dynamodb.ts       # Configuración de DynamoDB
 ├── controllers/
 │   └── data.controller.ts
+│   └── product.controller.ts
 ├── models/
-│   ├── history.model.ts
 │   └── product.model.ts
 ├── services/
 │   ├── swapi.service.ts
-│   ├── weather.service.ts
 │   ├── cache.service.ts  # Manejo de caché con DynamoDB
+├── schemas/
+│   ├── store.schema.ts
 ├── handlers/
 │   └── dataService.handler.ts
 ├── tests/
 │   ├── controllers/
 │   ├── models/
 │   ├── services/
+├── translations/ # Definicion de traducciones
 ├── utils/
 │   └── error.helper.ts
 ```
 
----
-
+--- 
 ## Endpoints
-### 1. **`GET /data/product-history`**
+### 1. **`POST https://cvw0jor919.execute-api.us-east-1.amazonaws.com/store`**
+- **Descripción:** Crea productos en una base de datos DynamoDB.
+- **Params:** 
+  ```
+    {
+       "name": "table",
+       "color": "yellow",
+       "quantity": 200,
+       "price": 30.00
+    }
+  ```
+### 2. **`https://cvw0jor919.execute-api.us-east-1.amazonaws.com/data/product-history`**
 - **Descripción:** Retorna todos los productos almacenados en DynamoDB.
 
-### 2. **`GET /data/planets/:id`**
-- **Descripción:** Combina datos de SWAPI y Open-Meteo para un planeta específico y almacena el resultado en el historial.
+### 3. **`GET https://cvw0jor919.execute-api.us-east-1.amazonaws.com/data/planets/:id`**
+- **Descripción:** Retorna la informacion de un planeta segun su ID.
 
-### 3. **`GET /data/planets-history`**
-- **Descripción:** Retorna los datos históricos de planetas almacenados en DynamoDB.
+### 4. **`GET https://cvw0jor919.execute-api.us-east-1.amazonaws.com/data/planets`**
+- **Descripción:** Obtiene la informacion de los planetas.
 
 ---
 
@@ -115,7 +132,6 @@ src/
    - **Controladores:** Verifica el correcto manejo de las peticiones.
    - **Modelos:** Asegura el funcionamiento de las interacciones con DynamoDB.
    - **Servicios:** Mockea las respuestas de las APIs externas para simular diferentes escenarios.
-   - **Caché:** Verifica la funcionalidad del almacenamiento y recuperación en DynamoDB.
 
 ---
 
